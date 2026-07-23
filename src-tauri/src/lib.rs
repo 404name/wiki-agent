@@ -5,7 +5,8 @@ struct SidecarState(Mutex<Option<Child>>);
 
 fn spawn_sidecar() -> Result<Child, String> {
     let _ = dotenvy::from_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join(".env"));
-    let bundled = std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.join("wiki-agent-core")));
+    let sidecar_name = if cfg!(windows) { "wiki-agent-core.exe" } else { "wiki-agent-core" };
+    let bundled = std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.join(sidecar_name)));
     let mut command = if bundled.as_ref().is_some_and(|p| p.exists()) {
         Command::new(bundled.unwrap())
     } else {

@@ -95,8 +95,8 @@ npm run tauri dev
 uv pip install --python python-core/.venv/bin/python -e 'python-core[dev]'
 python-core/.venv/bin/python -m pytest python-core/tests
 
-# macOS 打包（先按 PyInstaller spec 生成 sidecar）
-python-core/.venv/bin/pyinstaller python-core/wiki-agent-core-aarch64-apple-darwin.spec
+# macOS 打包（先生成当前架构的 sidecar，再打包桌面应用）
+python-core/.venv/bin/python python-core/build_sidecar.py
 npm run tauri build -- --bundles app,dmg
 ```
 

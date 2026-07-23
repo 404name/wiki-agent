@@ -75,6 +75,34 @@ vendor/redis-stable/src/redis-server --loadmodule bin/falkordb.so --port 6379 \
 # 本机无 Docker、brew 已损坏（load_tab 崩溃）；GitHub 直连正常；HF 下载需 socksio
 ```
 
+## 本地运行与打包
+
+```bash
+# 首次准备
+cp .env.example .env
+# 填写 LLM_API_KEY；同时确保 FalkorDB 监听 6379
+
+# 安装依赖并启动桌面应用
+npm install
+source "$HOME/.cargo/env"
+npm run tauri dev
+
+# Python 测试
+uv pip install --python python-core/.venv/bin/python -e 'python-core[dev]'
+python-core/.venv/bin/python -m pytest python-core/tests
+
+# macOS 打包（先按 PyInstaller spec 生成 sidecar）
+python-core/.venv/bin/pyinstaller python-core/wiki-agent-core-aarch64-apple-darwin.spec
+npm run tauri build -- --bundles app,dmg
+```
+
+本机构建产物：
+
+- `src-tauri/target/release/bundle/macos/Wiki Agent.app`
+- `src-tauri/target/release/bundle/dmg/Wiki Agent_0.1.0_aarch64.dmg`
+
+> DeepSeek 密钥不会写入二进制或 Git。当前 FalkorDB 作为本地服务运行；SearXNG 需通过 `SEARXNG_URL` 配置。
+
 ## 状态
 
 - [x] llm_wiki 调研（结论见上）

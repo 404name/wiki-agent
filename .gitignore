@@ -21,6 +21,7 @@ raw/*
 !raw/.gitkeep
 python-core/build/
 python-core/dist/
+python-core/*.spec
 src-tauri/binaries/
 src-tauri/target/
 

@@ -1,51 +1,16 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
-
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
-}
-
-export default App;
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/source-serif-4';
+import { useEffect, useState } from 'react';
+import { BookOpen, FileUp, Gavel, Search, Send, Settings2 } from 'lucide-react';
+import './App.css';
+const API=window.location.port==='19829'?'':'http://127.0.0.1:19829';
+type Tab='ask'|'ingest'|'decisions'|'search'|'settings';
+const tabs=[['ask','提问',BookOpen],['ingest','导入',FileUp],['decisions','决策',Gavel],['search','搜索',Search],['settings','配置',Settings2]] as const;
+export default function App(){
+ const[tab,setTab]=useState<Tab>('ask'),[online,setOnline]=useState(false),[busy,setBusy]=useState(false),[input,setInput]=useState(''),[output,setOutput]=useState<any>(null),[file,setFile]=useState<File|null>(null);
+ const[settings,setSettings]=useState({llm_base_url:'https://api.deepseek.com/v1',llm_model:'deepseek-chat',api_key:'',searxng_url:''});
+ useEffect(()=>{fetch(API+'/config').then(r=>r.json()).then(c=>setSettings(s=>({...s,llm_base_url:c.llm_base_url,llm_model:c.llm_model,searxng_url:c.searxng_url||''}))).catch(()=>{})},[]);
+ useEffect(()=>{let stop=false,t:number;const check=()=>fetch(API+'/health').then(r=>r.json()).then(h=>{if(!stop){setOnline(h.status==='ready');t=window.setTimeout(check,h.status==='ready'?5000:1000)}}).catch(()=>{if(!stop){setOnline(false);t=window.setTimeout(check,1000)}});check();return()=>{stop=true;clearTimeout(t)}},[]);
+ async function run(){setBusy(true);setOutput(null);try{let r:Response;if(tab==='settings')r=await fetch(API+'/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});else if(tab==='ingest'){if(!file)throw Error('请选择文档');const f=new FormData();f.append('file',file);r=await fetch(API+'/ingest',{method:'POST',body:f})}else if(tab==='decisions')r=await fetch(API+'/decisions?kind=Decision&query='+encodeURIComponent(input));else r=await fetch(API+'/'+(tab==='ask'?'ask':'search'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tab==='ask'?{question:input}:{query:input,limit:8})});const data=await r.json();if(!r.ok)throw Error(data.detail||`HTTP ${r.status}`);setOutput(data);if(tab==='settings')setSettings(s=>({...s,api_key:''}))}catch(e){setOutput({error:e instanceof Error?e.message:String(e)})}finally{setBusy(false)}}
+ const description=tab==='ask'?'从团队知识与证据中形成可追溯回答':tab==='ingest'?'将原始资料编译进持续演进的知识图谱':tab==='decisions'?'查阅决策、规则、风险及其来源':tab==='search'?'联网寻找可补充的外部证据':'模型密钥仅存入系统钥匙串，不会回传到界面';
+ return <div className="shell"><aside><div className="brand"><span>WA</span><div><strong>Wiki Agent</strong><small>知识证据台</small></div></div><nav>{tabs.map(([id,label,Icon])=><button className={tab===id?'active':''} onClick={()=>{setTab(id);setOutput(null)}} key={id}><Icon size={17}/>{label}</button>)}</nav><div className="status"><i className={online?'ok':''}/><span>{online?'知识引擎在线':'知识引擎初始化中'}</span></div></aside><main><header><p>企业知识档案 · 01</p><h1>{tabs.find(x=>x[0]===tab)?.[1]}</h1><span>{description}</span></header><section className="workspace"><div className="folio"><b>{tab.toUpperCase()}</b><em>№ 2026—07</em></div>{tab==='settings'?<div className="settings"><label>LLM URL<input value={settings.llm_base_url} onChange={e=>setSettings({...settings,llm_base_url:e.target.value})}/></label><label>Model<input value={settings.llm_model} onChange={e=>setSettings({...settings,llm_model:e.target.value})}/></label><label>API Key<input type="password" autoComplete="new-password" value={settings.api_key} placeholder="留空表示保留钥匙串中的密钥" onChange={e=>setSettings({...settings,api_key:e.target.value})}/></label><label>SearXNG URL<input value={settings.searxng_url} placeholder="可选" onChange={e=>setSettings({...settings,searxng_url:e.target.value})}/></label><small>密钥只发送至本机 127.0.0.1，并写入 macOS Keychain；浏览器不保存。</small></div>:tab==='ingest'?<label className="drop"><FileUp size={28}/><strong>{file?.name||'选择 md、txt、pdf 或 docx'}</strong><span>原文保持不可变；重复内容将自动跳过</span><input type="file" accept=".md,.txt,.pdf,.docx" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>:<textarea value={input} onChange={e=>setInput(e.target.value)} placeholder={tab==='ask'?'例如：为什么团队决定使用事件驱动架构？':tab==='decisions'?'按主题筛选决策（可留空）':'输入需要补充研究的主题'}/>}<button className="primary" disabled={busy||(!file&&tab==='ingest')} onClick={run}>{busy?'处理中…':tab==='settings'?'安全保存':tab==='ingest'?'编译资料':tab==='decisions'?'查阅登记簿':tab==='search'?'开始检索':'形成回答'}{!busy&&<Send size={15}/>}</button></section><section className="result"><div className="result-head"><b>证据与结论</b><span>{output?'已生成':'等待材料'}</span></div>{!output?<div className="empty"><BookOpen size={24}/><p>结果会在这里展开，并保留来源、有效性与风险评审。</p></div>:output.error?<div className="error">{output.error}</div>:<pre>{JSON.stringify(output,null,2)}</pre>}</section></main></div>}

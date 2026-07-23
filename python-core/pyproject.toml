@@ -12,6 +12,7 @@ dependencies = [
   "fastembed",
   "graphiti-core[falkordb]==0.29.2",
   "httpx",
+  "keyring",
   "langchain-openai",
   "langgraph",
   "langgraph-checkpoint-sqlite",

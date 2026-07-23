@@ -1,0 +1,8 @@
+[submodule "repos/weknora"]
+	path = repos/weknora
+	url = https://github.com/Tencent/WeKnora.git
+	branch = main
+[submodule "repos/llm_wiki"]
+	path = repos/llm_wiki
+	url = https://github.com/nashsu/llm_wiki.git
+	branch = main

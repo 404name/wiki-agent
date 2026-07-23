@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wiki-agent-core"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "aiosqlite",
+  "fastapi",
+  "fastembed",
+  "graphiti-core[falkordb]==0.29.2",
+  "httpx",
+  "langchain-openai",
+  "langgraph",
+  "langgraph-checkpoint-sqlite",
+  "pydantic",
+  "pypdf",
+  "python-docx",
+  "python-dotenv",
+  "python-multipart",
+  "uvicorn",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "pyinstaller"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["wiki_agent"]

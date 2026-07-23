@@ -83,6 +83,7 @@ vendor/redis-stable/src/redis-server --loadmodule bin/falkordb.so --port 6379 \
 
 ```bash
 # 首次准备
+git submodule update --init --recursive   # 拉取参考实现 repos/weknora、repos/llm_wiki
 cp .env.example .env
 # 填写 LLM_API_KEY；同时确保 FalkorDB 监听 6379
 

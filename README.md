@@ -2,6 +2,10 @@
 
 企业知识 Agent：导入文档 → AI 自动把知识学进图谱 → 提问回答（带证据）→ 决策可查 → 可联网补充。
 
+## 界面预览
+
+![Wiki Agent 知识证据台](assets/wiki-agent-workspace.png)
+
 ## 目标能力（需求确认版）
 
 1. 可配置 LLM（OpenAI 兼容端点，默认 DeepSeek）
